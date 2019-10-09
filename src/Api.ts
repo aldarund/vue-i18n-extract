@@ -6,6 +6,7 @@ import {
   extractI18nItemsFromLanguageFiles,
   logMissingKeys,
   logUnusedKeys,
+  logDynamicKeys
 } from './library/index';
 
 import { SimpleFile, I18NItem, I18NLanguage, I18NReport } from './library/models';
@@ -38,12 +39,17 @@ export default class VueI18NExtract {
   public extractI18NReport (parsedVueFiles: I18NItem[], parsedLanguageFiles: I18NLanguage, reportType: VueI18NExtractReportTypes = VueI18NExtractReportTypes.All): I18NReport {
     const missingKeys = [];
     const unusedKeys = [];
+    const dynamicKeys = [];
 
     Object.keys(parsedLanguageFiles).forEach((language) => {
       let languageItems = parsedLanguageFiles[language];
 
       parsedVueFiles.forEach((vueItem) => {
         const usedByVueItem = ({ path }) => path === vueItem.path || path.startsWith(vueItem.path + '.');
+        if (vueItem.path.includes('${')) {
+          dynamicKeys.push(({ ...vueItem, language }))
+          return
+        }
         if (!parsedLanguageFiles[language].some(usedByVueItem)) {
           missingKeys.push(({ ...vueItem, language }));
         }
@@ -60,6 +66,7 @@ export default class VueI18NExtract {
     if (reportType & VueI18NExtractReportTypes.Unused) {
       extracts = Object.assign(extracts, { unusedKeys });
     }
+    extracts = Object.assign(extracts, { dynamicKeys });
 
     return extracts;
   }
@@ -70,6 +77,8 @@ export default class VueI18NExtract {
         logMissingKeys(report.missingKeys);
       } else if (key === 'unusedKeys') {
         logUnusedKeys(report.unusedKeys);
+      } else if (key === 'dynamicKeys') {
+        logDynamicKeys(report.dynamicKeys);
       }
     })
   }
