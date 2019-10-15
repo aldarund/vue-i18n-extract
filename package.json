@@ -1,5 +1,5 @@
 {
-  "name": "vue-i18n-extract",
+  "name": "vue-i18n-extract-mod",
   "version": "1.0.2",
   "description": "Manage vue-i18n localization with static analysis",
   "scripts": {
